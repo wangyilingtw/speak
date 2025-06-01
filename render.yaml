@@ -1,0 +1,12 @@
+
+services:
+  - type: web
+    name: pronunciation-api
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn main:app
+    envVars:
+      - key: AZURE_SPEECH_KEY
+        sync: false
+      - key: AZURE_REGION
+        sync: false
