@@ -52,6 +52,8 @@ def assess():
         data=audio_data
     )
 
+    print("Azure response:", response.status_code, response.text)
+
     if response.status_code != 200:
         return jsonify({"error": "Failed to get response from Azure", "details": response.text}), 500
 
@@ -84,6 +86,8 @@ def debug():
         headers=headers,
         data=audio_data
     )
+
+    print("Azure response (debug):", response.status_code, response.text)
 
     if response.status_code != 200:
         return jsonify({"error": "Azure failed", "details": response.text}), 500
