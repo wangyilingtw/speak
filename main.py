@@ -57,7 +57,38 @@ def assess():
 
     return jsonify(response.json())
 
+@app.route("/debug", methods=["GET"])
+def debug():
+    test_path = "test.wav"
+    if not os.path.exists(test_path):
+        return jsonify({"error": "test.wav not found on server"}), 500
+
+    with open(test_path, "rb") as f:
+        audio_data = f.read()
+
+    reference_text = "Hello, how are you?"
+
+    headers = {
+        "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
+        "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
+        "Pronunciation-Assessment": json.dumps({
+            "ReferenceText": reference_text,
+            "GradingSystem": "HundredMark",
+            "Granularity": "Phoneme",
+            "Dimension": "Comprehensive"
+        })
+    }
+
+    response = requests.post(
+        f"https://{AZURE_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US",
+        headers=headers,
+        data=audio_data
+    )
+
+    if response.status_code != 200:
+        return jsonify({"error": "Azure failed", "details": response.text}), 500
+
+    return jsonify(response.json())
+
 if __name__ == "__main__":
     app.run(debug=True)
-
-
