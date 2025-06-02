@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify
 import requests
 import os
@@ -8,7 +9,7 @@ from flask_cors import CORS
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # 允許跨網域請求
+CORS(app)
 
 AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY")
 AZURE_REGION = os.environ.get("AZURE_REGION", "eastus")
@@ -21,18 +22,15 @@ def assess():
     audio_file = request.files['audio']
     reference_text = request.form['text']
 
-    # 避免 InvalidHeader 錯誤：使用 json.dumps 建立單行 JSON 字串
-    assessment_config = json.dumps({
-        "ReferenceText": reference_text,
-        "GradingSystem": "HundredMark",
-        "Granularity": "Phoneme",
-        "Dimension": "Comprehensive"
-    })
-
     headers = {
         "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
         "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
-        "Pronunciation-Assessment": assessment_config
+        "Pronunciation-Assessment": json.dumps({
+            "ReferenceText": reference_text,
+            "GradingSystem": "HundredMark",
+            "Granularity": "Phoneme",
+            "Dimension": "Comprehensive"
+        })
     }
 
     response = requests.post(
@@ -48,3 +46,4 @@ def assess():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
