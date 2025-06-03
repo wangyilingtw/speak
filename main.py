@@ -77,8 +77,8 @@ def assess():
         audio = AudioSegment.from_file(io.BytesIO(audio_data), format="webm")
         print("Original audio: channels=", audio.channels, "frame_rate=", audio.frame_rate, "sample_width=", audio.sample_width)
         
-        # 修剪無聲片段（低於 -50 dBFS，持續 500ms）
-        audio = audio.strip_silence(silence_thresh=-50, silence_len=500)
+        # 修剪無聲片段（低於 -40 dBFS，持續 500ms）
+        audio = audio.strip_silence(silence_thresh=-40, silence_len=500)
         audio = audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
         print("Converted audio: channels=", audio.channels, "frame_rate=", audio.frame_rate, "sample_width=", audio.sample_width)
         
