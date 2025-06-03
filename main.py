@@ -7,17 +7,15 @@ from flask_cors import CORS
 from urllib.parse import quote
 from pydub import AudioSegment
 import io
+from flask import render_template
 
-# 初始化 Flask 應用並啟用 CORS
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# 從環境變量獲取 Azure 配置
 AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY")
 AZURE_REGION = os.environ.get("AZURE_REGION", "eastus")
 
-# 調試環境變量
 print("AZURE_SPEECH_KEY:", "Set" if AZURE_SPEECH_KEY else "Not set")
 print("AZURE_REGION:", AZURE_REGION)
 
@@ -71,7 +69,9 @@ def assess():
     audio_data = audio_file.read()
     print("Received audio size:", len(audio_data), "bytes")
 
-    # 轉換音頻為 WAV 格式
+    if len(audio_data) == 0:
+        return jsonify({"error": "音頻數據為空"}), 400
+
     try:
         audio = AudioSegment.from_file(io.BytesIO(audio_data), format="webm")
         audio = audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
@@ -108,6 +108,10 @@ def assess():
         return jsonify(response.json())
     except Exception as e:
         return jsonify({"error": "伺服器錯誤", "details": str(e)}), 500
+
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
