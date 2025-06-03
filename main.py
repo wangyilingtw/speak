@@ -39,7 +39,7 @@ def debug():
     url = (
         f"https://{AZURE_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1"
         f"?language=en-US"
-        f"&Pronunciation-Assessment={quote(json.dumps(assessment_params))}"
+        f"&PronunciationAssessment={quote(json.dumps(assessment_params))}"
     )
 
     headers = {
@@ -74,7 +74,9 @@ def assess():
 
     try:
         audio = AudioSegment.from_file(io.BytesIO(audio_data), format="webm")
+        print("Original audio: channels=", audio.channels, "frame_rate=", audio.frame_rate, "sample_width=", audio.sample_width)
         audio = audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
+        print("Converted audio: channels=", audio.channels, "frame_rate=", audio.frame_rate, "sample_width=", audio.sample_width)
         output = io.BytesIO()
         audio.export(output, format="wav")
         audio_data = output.getvalue()
@@ -88,12 +90,14 @@ def assess():
         "Granularity": "Phoneme",
         "Dimension": "Comprehensive"
     }
+    print("Assessment params:", assessment_params)
 
     url = (
         f"https://{AZURE_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1"
         f"?language=en-US"
-        f"&Pronunciation-Assessment={quote(json.dumps(assessment_params))}"
+        f"&PronunciationAssessment={quote(json.dumps(assessment_params))}"
     )
+    print("Request URL:", url)
 
     headers = {
         "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
