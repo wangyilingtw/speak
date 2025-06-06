@@ -28,13 +28,14 @@ def debug():
     with open(test_path, "rb") as f:
         audio_data = f.read()
 
-    reference_text = "Hello, how are you?"
+    reference_text = "I'm not sure can I have a hamburger."
     assessment_params = {
         "ReferenceText": reference_text,
         "GradingSystem": "HundredMark",
         "Granularity": "Phoneme",
         "Dimension": "Comprehensive",
-        "EnableMiscue": True
+        "EnableMiscue": True,
+        "PhonemeAlphabet": "IPA"
     }
 
     url = (
@@ -45,7 +46,8 @@ def debug():
 
     headers = {
         "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
-        "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000"
+        "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
+        "Accept": "application/json"
     }
 
     try:
@@ -77,7 +79,7 @@ def assess():
         audio = AudioSegment.from_file(io.BytesIO(audio_data), format="webm")
         print("Original audio: channels=", audio.channels, "frame_rate=", audio.frame_rate, "sample_width=", audio.sample_width)
         
-        audio = audio.strip_silence(silence_thresh=-40, silence_len=500)
+        audio = audio.strip_silence(silence_thresh=-35, silence_len=300)
         audio = audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
         print("Converted audio: channels=", audio.channels, "frame_rate=", audio.frame_rate, "sample_width=", audio.sample_width)
         
