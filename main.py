@@ -30,17 +30,25 @@ def assess():
         return jsonify({"error": "音頻數據為空"}), 400
 
     try:
-        # 轉換 WebM -> PCM WAV 格式
+        # 轉換 WebM → WAV (16kHz, mono, PCM 16-bit)
         audio = AudioSegment.from_file(io.BytesIO(audio_data), format="webm")
         audio = audio.strip_silence(silence_thresh=-35, silence_len=300)
         audio = audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
+
+        # Debug 音訊格式
+        print("📢 Converted audio format:")
+        print(" - Channels:", audio.channels)
+        print(" - Frame rate:", audio.frame_rate)
+        print(" - Sample width (bytes):", audio.sample_width)
+
         output = io.BytesIO()
         audio.export(output, format="wav")
         audio_data = output.getvalue()
+
+        print("🟦 Converted audio size (bytes):", len(audio_data))
     except Exception as e:
         return jsonify({"error": "音頻轉換失敗", "details": str(e)}), 400
 
-    # 發音評估參數
     assessment_params = {
         "ReferenceText": reference_text,
         "GradingSystem": "HundredMark",
@@ -50,12 +58,13 @@ def assess():
         "PhonemeAlphabet": "IPA"
     }
 
-    # 將參數附加在 URL 的 query string
     url = (
         f"https://{AZURE_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1"
         f"?language=en-US&format=detailed"
         f"&PronunciationAssessment={quote(json.dumps(assessment_params))}"
     )
+
+    print("🌐 Final request URL:", url)
 
     headers = {
         "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
@@ -65,6 +74,11 @@ def assess():
 
     try:
         response = requests.post(url, headers=headers, data=audio_data)
+
+        # Debug Azure 回應
+        print("🟨 Azure status code:", response.status_code)
+        print("🟨 Azure response text:", response.text)
+
         if response.status_code != 200:
             return jsonify({"error": "Azure 請求失敗", "details": response.text}), response.status_code
         return jsonify(response.json())
